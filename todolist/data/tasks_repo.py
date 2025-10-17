@@ -1,4 +1,4 @@
-from todolist.core.models import Task
+from todolist.core.Models.models import Task
 
 class TasksRepo:
 

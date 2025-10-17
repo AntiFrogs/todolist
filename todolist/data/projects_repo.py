@@ -1,4 +1,4 @@
-from todolist.core.models import Project
+from todolist.core.Models.models import Project
 
 class ProjectsRepo:
     
