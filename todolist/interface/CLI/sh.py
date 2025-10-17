@@ -1,11 +1,12 @@
 from todolist.core.services.project_service import ProjectService
 from todolist.core.services.task_service import TaskService
-
+import os 
 
 HELP = """
 Commands:
   help
   exit
+  clear
   project create <name> | <description>
   project list
   project delete <project_id>
@@ -53,6 +54,10 @@ class CLI:
             
             if cmd.lower() == "help":
                 print(HELP)
+                continue
+            
+            if cmd.lower() == "clear":
+                os.system("cls" if os.name == "nt" else "clear")
                 continue
                 
             try:
