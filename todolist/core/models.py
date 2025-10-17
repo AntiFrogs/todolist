@@ -1,13 +1,19 @@
 from uuid import uuid4
 
 class Project:
-    id: str = str(uuid4())
+    id: str 
     name: str
     desc: str
 
     def __init__(self , name: str , desc: str = ""):
+        self.id = str(uuid4())
         self.name = name
         self.desc = desc
+    
+    def __str__(self):
+        return f"Project(id: {self.id[:8]} , name: {self.name}, description: {self.desc})"
+    def __repr__(self):
+        return f"Project(id: {self.id[:8]} , name: {self.name}, description: {self.desc})"
 
     def edit(self , newName: str = "" , newDesc = "") -> None:
         if newName.strip():
@@ -16,17 +22,23 @@ class Project:
             self.desc = newDesc
 
 class Task:
-    id: str = str(uuid4())
+    id: str
     for_project: int
     name: str
     desc: str
     status: str = "todo"
 
     def __init__(self , for_project: int , name:str , desc:str = "", status:str = "todo"):
+        self.id = str(uuid4())
         self.name = name
         self.desc = desc
         self.status = status
         self.for_project = for_project
+    
+    def __str__(self):
+         return f"Task(id: {self.id[:8]},name: {self.name}, description: {self.desc},status: {self.status}, for project: {self.for_project[:8]})"
+    def __repr__ (self):
+         return f"Task(id: {self.id[:8]},name: {self.name}, description: {self.desc},status: {self.status}, for project: {self.for_project[:8]})"
 
     def edit(self , newName: str = "" , newDesc: str = "") -> None :
         if newName.strip():
