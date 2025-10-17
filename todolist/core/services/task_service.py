@@ -43,4 +43,4 @@ class TaskService:
         if not self.projects.get(projectId):
             raise ValueError("Project not found")
 
-        return self.tasks.list_by_project()
+        return self.tasks.list_by_project(projectId)
