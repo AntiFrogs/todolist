@@ -2,6 +2,7 @@ from todolist.core.Models.models import Project
 from todolist.data.projects_repo import ProjectsRepo
 from todolist.data.tasks_repo import TasksRepo
 from todolist.config.setting import Setting
+from todolist.core.validation.validation import validateTextLength , validateStatus , validateProjectName , validateProjectNumber
 
 
 class ProjectService:
@@ -12,11 +13,20 @@ class ProjectService:
         self.setting = setting
     
     def createProject(self , name: str , desc: str = "") -> Project:
+        validateTextLength(name , self.setting.MAX_NAME_WORD_LENGTH , "Project name")
+        validateTextLength(desc , self.setting.MAX_DESC_WORD_LENGTH , "Project description")
+        validateProjectName(name , self.projects.list()) 
+        validateProjectNumber(self.projects.length() , self.setting.MAX_NUMBER_OF_PROJECTS)
+
         newProject = Project(name , desc)
         self.projects.add(newProject)
         return newProject
     
     def editProject(self , projectId:str , newName: str | None = None , newDesc: str | None = None ) -> Project:
+        validateTextLength(newName , self.setting.MAX_NAME_WORD_LENGTH , "Project name")
+        validateTextLength(newDesc , self.setting.MAX_DESC_WORD_LENGTH , "Project description")
+        validateProjectName(newName , self.projects.list() , projectId) 
+
         projectToEdit = self.projects.get(projectId)
 
         if not projectToEdit:

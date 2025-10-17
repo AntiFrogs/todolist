@@ -23,3 +23,6 @@ class ProjectsRepo:
     
     def list(self) -> list[Project]:
         return list(self._projects.values())
+    
+    def length(self) -> int:
+        return len(self._projects)

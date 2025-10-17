@@ -2,6 +2,8 @@ from todolist.core.Models.models import Task
 from todolist.data.projects_repo import ProjectsRepo
 from todolist.data.tasks_repo import TasksRepo
 from todolist.config.setting import Setting
+from todolist.core.validation.validation import validateTextLength , validateStatus , validateTaskNumber
+
 
 class TaskService:
 
@@ -11,6 +13,10 @@ class TaskService:
         self.setting = setting
     
     def addTask(self , projectId: str , name:str , desc: str) -> Task:
+        validateTextLength(name , self.setting.MAX_NAME_WORD_LENGTH , "Task name")
+        validateTextLength(desc , self.setting.MAX_DESC_WORD_LENGTH , "Task desc")
+        validateTaskNumber(self.tasks.length() , self.setting.MAX_NUMBER_OF_TASKS)
+
         if not self.projects.get(projectId):
             raise ValueError("Project not found")
 
@@ -19,6 +25,9 @@ class TaskService:
         return newTask
 
     def editTask(self , taskId: str , name: str | None = None , desc: str | None = None) -> Task:
+        validateTextLength(name , self.setting.MAX_NAME_WORD_LENGTH , "Task name")
+        validateTextLength(desc , self.setting.MAX_DESC_WORD_LENGTH , "Task desc")
+
         taskToEdit = self.tasks.get(taskId)
 
         if not taskToEdit:
@@ -28,6 +37,8 @@ class TaskService:
         return self.tasks.put(taskToEdit)
     
     def changeTaskStatus(self , taskId: str , newStatus: str) -> Task:
+        validateStatus(newStatus)
+
         taskToChange = self.tasks.get(taskId)
         
         if not taskToChange:

@@ -45,6 +45,7 @@ class TasksRepo:
         task_ids = self._project_tasks.get(projectId , set())
         return [self._tasks[task_id] for task_id in task_ids]
 
-
+    def length(self) -> int:
+        return len(self._tasks)
 
 
