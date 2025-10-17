@@ -1,6 +1,7 @@
 from todolist.core.services.project_service import ProjectService
 from todolist.core.services.task_service import TaskService
 import os 
+from datetime import datetime
 
 HELP = """
 Commands:
@@ -11,10 +12,10 @@ Commands:
   project list
   project delete <project_id>
   project edit <project_id> | [name or ""] | [description or ""]
-  task add <project_id> | <title> | <description> | <todo|doing|done>
+  task add <project_id> | <title> | <description> | <todo|doing|done> | <deadline(yyyy-mm-dd)>
   task list <project_id>
   task status <task_id> | <todo|doing|done>
-  task edit <task_id> | <title> | <description> | <todo|doing|done>
+  task edit <task_id> | <title> | <description> | <todo|doing|done> | <deadline(yyyy-mm-dd)>
   task delete <task_id>
 """
 
@@ -26,6 +27,12 @@ def _split_pipe(s: str) -> list[str]:
             parameters[index] = p[1:-1].strip()
 
     return parameters
+
+def _parseDeadline(s: str) -> datetime | None:
+    try : 
+        return datetime.strptime    (s , "%Y-%m-%d")
+    except ValueError:
+        return None
 
 
 
@@ -144,7 +151,7 @@ class CLI:
 
     def _taskAdd(self , cmd:str ) -> None:
         before , sep , after = cmd.partition("task add ")
-        projectId , name , desc , status = _split_pipe(after)
+        projectId , name , desc , status , deadline= _split_pipe(after)
 
         if projectId == "":
             raise ValueError("project id argument is missing")
@@ -153,8 +160,10 @@ class CLI:
             raise ValueError("A task must have a name")
         if status == "":
             status = "todo"
-
-        t = self.tasks.addTask(projectId , name , desc , status)
+        
+        deadline = _parseDeadline(deadline)
+        
+        t = self.tasks.addTask(projectId , name , desc , status , deadline)
         print(f"added task {t.name} with id {t.id} to project {projectId}")
 
     def _taskList(self , cmd:str ) -> None:
@@ -171,7 +180,7 @@ class CLI:
             return
         
         for t in tasksList:
-            print(f"{t.id[:8]} | name: {t.name} | status: {t.status} | description: {t.desc}")
+            print(f"{t.id} | name: {t.name} | status: {t.status} {f"| deadline: {t.deadline} " if t.deadline else ""} {f"| description: {t.desc}" if t.desc else ""}")
     
     
     def _taskStatus(self , cmd:str ) -> None:
@@ -187,7 +196,7 @@ class CLI:
 
     def _taskEdit(self , cmd:str) -> None:
         before, sep , after = cmd.partition("task edit ")
-        taskId , name , desc , status = _split_pipe(after)
+        taskId , name , desc , status , deadline= _split_pipe(after)
         
         if taskId == "":
             raise ValueError("task id argument is missing")
@@ -199,7 +208,9 @@ class CLI:
         if status == "":
             status = None
         
-        t = self.tasks.editTask(taskId , name , desc , status) 
+        deadline = _parseDeadline(deadline)
+        
+        t = self.tasks.editTask(taskId , name , desc , status , deadline) 
         print(f"task {t.id} updated")
     
     def _taskDelete(self , cmd:str ) -> None:

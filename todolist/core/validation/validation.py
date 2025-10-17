@@ -1,3 +1,4 @@
+from datetime import datetime
 
 STATUS_TAGS = ["todo" , "doing" , "done"]
 
@@ -27,3 +28,8 @@ def validateProjectNumber(currentProjectsNumber: int , max_project_number: int):
 def validateTaskNumber(currentTasksNumber: int , max_task_numer: int):
     if currentTasksNumber == max_task_numer: 
         raise ValueError("Max number of tasks reached")
+
+def validateDeadline(deadline: datetime) -> None:
+    today = datetime.now()
+    if deadline < today:
+        raise ValueError("deadline can't be in the past!")

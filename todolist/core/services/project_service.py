@@ -2,7 +2,7 @@ from todolist.core.Models.models import Project
 from todolist.data.projects_repo import ProjectsRepo
 from todolist.data.tasks_repo import TasksRepo
 from todolist.config.setting import Setting
-from todolist.core.validation.validation import validateTextLength , validateStatus , validateProjectName , validateProjectNumber
+from todolist.core.validation.validation import validateTextLength , validateProjectName , validateProjectNumber
 
 
 class ProjectService:
