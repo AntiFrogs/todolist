@@ -23,9 +23,11 @@ class ProjectService:
         return newProject
     
     def editProject(self , projectId:str , newName: str | None = None , newDesc: str | None = None ) -> Project:
-        validateTextLength(newName , self.setting.MAX_NAME_WORD_LENGTH , "Project name")
-        validateTextLength(newDesc , self.setting.MAX_DESC_WORD_LENGTH , "Project description")
-        validateProjectName(newName , self.projects.list() , projectId) 
+        if newName:
+            validateTextLength(newName , self.setting.MAX_NAME_WORD_LENGTH , "Project name")
+            validateProjectName(newName , self.projects.list() , projectId) 
+        if newDesc:
+            validateTextLength(newDesc , self.setting.MAX_DESC_WORD_LENGTH , "Project description")
 
         projectToEdit = self.projects.get(projectId)
 

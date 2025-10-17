@@ -40,11 +40,13 @@ class Task:
     def __repr__ (self):
          return f"Task(id: {self.id[:8]},name: {self.name}, description: {self.desc},status: {self.status}, for project: {self.for_project[:8]})"
 
-    def edit(self , * , newName: str | None = None , newDesc: str | None = None) -> None :
+    def edit(self , * , newName: str | None = None , newDesc: str | None = None , newStatus: str | None = None) -> None :
         if newName:
             self.name = newName
         if newDesc:
             self.desc = newDesc
+        if newStatus:
+            self.status = newStatus
 
     def changeStatus(self , newStatus: str) -> None:
         newStatus = newStatus.strip()

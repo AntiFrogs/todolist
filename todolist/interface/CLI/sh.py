@@ -10,14 +10,21 @@ Commands:
   project list
   project delete <project_id>
   project edit <project_id> | [name or ""] | [description or ""]
-  task add <project_id> | <title> | <description>
+  task add <project_id> | <title> | <description> | <todo|doing|done>
   task list <project_id>
   task status <task_id> | <todo|doing|done>
+  task edit <task_id> | <title> | <description> | <todo|doing|done>
   task delete <task_id>
 """
 
 def _split_pipe(s: str) -> list[str]:
-    return [part.strip() for part in s.split("|")]
+    parameters = [part.strip() for part in s.split("|")]
+    
+    for index , p in enumerate(parameters):
+        if p.startswith("\"") and p.endswith("\""):
+            parameters[index] = p[1:-1].strip()
+
+    return parameters
 
 
 
@@ -79,6 +86,9 @@ class CLI:
 
         elif cmd.startswith("task status "):
             self._taskStatus(cmd)
+        
+        elif cmd.startswith("task edit "):
+            self._taskEdit(cmd)
 
         elif cmd.startswith("task delete "):
             self._taskDelete(cmd)
@@ -119,8 +129,8 @@ class CLI:
 
     def _taskAdd(self , cmd:str ) -> None:
         before , sep , after = cmd.partition("task add ")
-        projectId , name , desc = _split_pipe(after)
-        t = self.tasks.addTask(projectId , name , desc)
+        projectId , name , desc , status = _split_pipe(after)
+        t = self.tasks.addTask(projectId , name , desc , status)
         print(f"added task {t.name} with id {t.id} to project {projectId}")
 
     def _taskList(self , cmd:str ) -> None:
@@ -141,7 +151,20 @@ class CLI:
         taskId , newStatus = _split_pipe(after)
         t = self.tasks.changeTaskStatus(taskId , newStatus)
         print(f"task {t.id} status changed to {t.status}")
-    
+
+    def _taskEdit(self , cmd:str) -> None:
+        before, sep , after = cmd.partition("task edit ")
+        taskId , name , desc , status = _split_pipe(after)
+
+        if name == "":
+            name = None
+        if desc == "":
+            desc = None
+        if status == "":
+            status = None
+        
+        t = self.tasks.editTask(taskId , name , desc , status) 
+        print(f"task {t.id} updated")
     
     def _taskDelete(self , cmd:str ) -> None:
         before , sep , after = cmd.partition("task delete ")

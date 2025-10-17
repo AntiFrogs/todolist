@@ -12,28 +12,33 @@ class TaskService:
         self.tasks = tasks_repo
         self.setting = setting
     
-    def addTask(self , projectId: str , name:str , desc: str) -> Task:
+    def addTask(self , projectId: str , name:str , desc: str , status: str = "todo") -> Task:
         validateTextLength(name , self.setting.MAX_NAME_WORD_LENGTH , "Task name")
         validateTextLength(desc , self.setting.MAX_DESC_WORD_LENGTH , "Task desc")
         validateTaskNumber(self.tasks.length() , self.setting.MAX_NUMBER_OF_TASKS)
+        validateStatus(status)
 
         if not self.projects.get(projectId):
             raise ValueError("Project not found")
 
-        newTask = Task(projectId , name , desc)
+        newTask = Task(projectId , name , desc , status)
         self.tasks.add(newTask)
         return newTask
 
-    def editTask(self , taskId: str , name: str | None = None , desc: str | None = None) -> Task:
-        validateTextLength(name , self.setting.MAX_NAME_WORD_LENGTH , "Task name")
-        validateTextLength(desc , self.setting.MAX_DESC_WORD_LENGTH , "Task desc")
+    def editTask(self , taskId: str , name: str | None = None , desc: str | None = None , status: str | None = None ) -> Task:
+        if name:
+            validateTextLength(name , self.setting.MAX_NAME_WORD_LENGTH , "Task name")
+        if desc:
+            validateTextLength(desc , self.setting.MAX_DESC_WORD_LENGTH , "Task desc")
+        if status:
+            validateStatus(status)
 
         taskToEdit = self.tasks.get(taskId)
 
         if not taskToEdit:
             raise ValueError("Task not found")
         
-        taskToEdit.edit(newName= name , newDesc= desc)
+        taskToEdit.edit(newName= name , newDesc= desc , newStatus=status)
         return self.tasks.put(taskToEdit)
     
     def changeTaskStatus(self , taskId: str , newStatus: str) -> Task:
