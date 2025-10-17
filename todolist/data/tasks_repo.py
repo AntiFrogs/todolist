@@ -25,7 +25,7 @@ class TasksRepo:
     def delete(self , taskId: str) -> bool:
         result = self._tasks.pop(taskId , None)
         if not result:
-            return False
+            raise ValueError("Task not found")
         
         if result.for_project in self._project_tasks:
             self._project_tasks[result.for_project].discard(taskId)

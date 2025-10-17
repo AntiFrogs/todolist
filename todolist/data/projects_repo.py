@@ -9,7 +9,7 @@ class ProjectsRepo:
         self._projects[newProject.id] = newProject
         return newProject
 
-    def get(self , projectId: str ) -> Project | None: 
+    def get(self , projectId: str ) -> Project | None:
         return self._projects.get(projectId)
     
     def delete(self , projectId) -> bool:

@@ -6,7 +6,7 @@ class Project:
     desc: str
 
     def __init__(self , name: str , desc: str = ""):
-        self.id = str(uuid4())
+        self.id = str(uuid4())[:8]
         self.name = name
         self.desc = desc
     
@@ -29,7 +29,7 @@ class Task:
     status: str = "todo"
 
     def __init__(self , for_project: int , name:str , desc:str = "", status:str = "todo"):
-        self.id = str(uuid4())
+        self.id = str(uuid4())[:8]
         self.name = name
         self.desc = desc
         self.status = status
