@@ -12,7 +12,7 @@ class TaskService:
         self.tasks = tasks_repo
         self.setting = setting
     
-    def addTask(self , projectId: str , name:str , desc: str , status: str = "todo") -> Task:
+    def addTask(self , projectId: str , name:str , desc: str = "" , status: str = "todo") -> Task:
         validateTextLength(name , self.setting.MAX_NAME_WORD_LENGTH , "Task name")
         validateTextLength(desc , self.setting.MAX_DESC_WORD_LENGTH , "Task desc")
         validateTaskNumber(self.tasks.length() , self.setting.MAX_NUMBER_OF_TASKS)

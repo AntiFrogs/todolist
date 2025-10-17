@@ -99,6 +99,10 @@ class CLI:
     def _projectCreate(self , cmd: str) -> None:
         before , sep , after = cmd.partition("project create ")
         name , desc = _split_pipe(after)
+        
+        if name == "":
+            raise ValueError("Project must have a name")
+
         p = self.projects.createProject(name , desc)
         print(f"created project {p.name} (id= {p.id})")
     
@@ -113,12 +117,18 @@ class CLI:
     def _projectDelete(self , cmd: str) -> None:
         before , sep , after = cmd.partition("project delete ")
         projectId = after.strip()
-        removed = self.projects.deleteProject(projectId)
+
+        if projectId == "":
+            raise ValueError("project id argument is missing")
+
+        self.projects.deleteProject(projectId)
         print(f"deleted project with id {projectId}")
 
     def _projectEdit(self , cmd: str) -> None:
         before , sep , after = cmd.partition("project edit ")
         projectId , name , desc = _split_pipe(after)
+        if projectId == "":
+            raise ValueError("project id argument is missing")
         if name == "":
             name = None
         if desc == "":
@@ -130,12 +140,25 @@ class CLI:
     def _taskAdd(self , cmd:str ) -> None:
         before , sep , after = cmd.partition("task add ")
         projectId , name , desc , status = _split_pipe(after)
+
+        if projectId == "":
+            raise ValueError("project id argument is missing")
+
+        if name == "":
+            raise ValueError("A task must have a name")
+        if status == "":
+            status = "todo"
+
         t = self.tasks.addTask(projectId , name , desc , status)
         print(f"added task {t.name} with id {t.id} to project {projectId}")
 
     def _taskList(self , cmd:str ) -> None:
         before , sep , after = cmd.partition("task list ")
         projectId = after.strip()
+
+        if projectId == "":
+            raise ValueError("project id argument is missing")
+
         tasksList = self.tasks.listTasks(projectId)
          
         if not tasksList:
@@ -149,12 +172,20 @@ class CLI:
     def _taskStatus(self , cmd:str ) -> None:
         before , sep , after = cmd.partition("task status ")
         taskId , newStatus = _split_pipe(after)
+
+        if taskId == "":
+            raise ValueError("task id argument is missing")
+        
+
         t = self.tasks.changeTaskStatus(taskId , newStatus)
         print(f"task {t.id} status changed to {t.status}")
 
     def _taskEdit(self , cmd:str) -> None:
         before, sep , after = cmd.partition("task edit ")
         taskId , name , desc , status = _split_pipe(after)
+        
+        if taskId == "":
+            raise ValueError("task id argument is missing")
 
         if name == "":
             name = None
@@ -169,6 +200,10 @@ class CLI:
     def _taskDelete(self , cmd:str ) -> None:
         before , sep , after = cmd.partition("task delete ")
         taskId = after.strip()
+
+        if taskId == "":
+            raise ValueError("task id argument is missing")
+
         result = self.tasks.deleteTask(taskId)
         if(result):
             print(f"deleted task with id {taskId}")
