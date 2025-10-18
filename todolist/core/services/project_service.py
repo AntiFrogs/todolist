@@ -6,13 +6,39 @@ from todolist.core.validation.validation import validateTextLength , validatePro
 
 
 class ProjectService:
+    """
+    A class used to represent the services provided for projects
+
+    Attributes:
+        projects (ProjectRepo): a project repository to work with 
+        tasks (TaskRepo): a task repository to work with 
+        setting (Setting): rules and constraints for the service
+    """
     
     def __init__(self , projects_repo: ProjectsRepo , tasks_repo: TasksRepo , setting: Setting):
+        """
+        Initializing a project service
+
+        Args:
+            projects_repo (ProjectsRepo) : Project repository to work with
+            tasks_repo (TasksRepo) : Task repository to work with
+        """
         self.projects = projects_repo
         self.tasks = tasks_repo
         self.setting = setting
     
     def createProject(self , name: str , desc: str = "") -> Project:
+        """
+        Creating a project
+
+        Args:
+            name (str): title to be given to the newly made project
+            desc (str , optional): description to be given to the newly made project. defaults to ""
+        
+        Returns:
+            Project: created project  
+
+        """
         validateTextLength(name , self.setting.MAX_NAME_WORD_LENGTH , "Project name")
         validateTextLength(desc , self.setting.MAX_DESC_WORD_LENGTH , "Project description")
         validateProjectName(name , self.projects.list()) 
@@ -23,6 +49,20 @@ class ProjectService:
         return newProject
     
     def editProject(self , projectId:str , newName: str | None = None , newDesc: str | None = None ) -> Project:
+        """
+        Updating a project
+    
+        Args:
+            projectId (str) : id of the project we want to have changes upon
+            newName (str | None , optional): new title to be given to the project. defaults to None
+            newDesc (str | None , optional): new description to be given to the project. defaults to None
+        
+        Raises:
+            ValueError: if project is not found
+        
+        Returns:
+            Project: updated project 
+        """
         if newName:
             validateTextLength(newName , self.setting.MAX_NAME_WORD_LENGTH , "Project name")
             validateProjectName(newName , self.projects.list() , projectId) 
@@ -38,6 +78,18 @@ class ProjectService:
         return self.projects.put(projectToEdit)
     
     def deleteProject(self , projectId: str) -> bool:
+        """
+        Deleting a project
+
+        Args:
+            projectId (str): id of the project to be deleted
+        
+        Raises:
+            ValueError: if project is not found
+            
+        Returns:
+            bool: A bollean indicating the success of the operation 
+        """
         projectToRemove = self.projects.get(projectId)
 
         if not projectToRemove: 
@@ -50,5 +102,11 @@ class ProjectService:
         return result
     
     def list(self) -> list[Project]:
+        """
+        Listing the projects
+
+        Returns:
+            list[Projects] : list of the projects 
+        """
         return self.projects.list()
     

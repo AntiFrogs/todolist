@@ -27,6 +27,15 @@ Commands:
 """
 
 def _split_pipe(s: str) -> list[str]:
+    """
+    splitting a string seprated with | ro an array of parameter
+
+    Args:
+        s (str): string to work on
+
+    Returns:
+        None 
+    """
     parameters = [part.strip() for part in s.split("|")]
     
     for index , p in enumerate(parameters):
@@ -36,6 +45,15 @@ def _split_pipe(s: str) -> list[str]:
     return parameters
 
 def _parseDeadline(s: str) -> datetime | None | str:
+    """
+    Parsing deadline in yyyy-mm-dd format
+
+    Args:
+        s (str): string to parse
+    
+    Returns:
+        datetime | None | str: depending on the input string 
+    """
     if s == "":
         return s
     try : 
@@ -46,13 +64,33 @@ def _parseDeadline(s: str) -> datetime | None | str:
 
 
 class CLI:
+    """
+    A class to represent cli 
+
+    Attributes: 
+        projects (ProjectService) : service to provide to projects
+        tasks (TaskService) : service to provide to tasks
+        session (PromptSession): interactive command line 
+    """
 
     def __init__(self, project_service: ProjectService, task_service: TaskService) -> None:
+        """
+        Initializing a ClI instance
+
+        Args:
+            project_service (ProjectService) : service to provide to projects
+            task_service (TaskService) : service to provide to tasks
+
+        Returns:
+            None
+        """
         self.projects = project_service
         self.tasks = task_service
         self.session = PromptSession(history=FileHistory(HISTORY_PATH))
 
     def run(self) -> None:
+        """Running the command line interface"""
+
         print( Fore.GREEN + "Cli todolist app. type help for command list. exit to quit.")
         while True:
             try:
@@ -88,6 +126,16 @@ class CLI:
                 print(Fore.RED + f"Error: {e}")
     
     def _dispatch(self , cmd: str) -> None:
+        """
+        dispatcher method to call the correct methods on cmd input
+        
+        Args:
+            cmd (str): command typed in the shell
+        
+        Returns: 
+            None
+        """
+
         if cmd.startswith("project create "):
             self._projectCreate(cmd)
 
@@ -119,6 +167,19 @@ class CLI:
             print(Fore.RED + f"\"{cmd}\" is not recognized as a command")
     
     def _projectCreate(self , cmd: str) -> None:
+        """
+        Call to create project
+
+        Args:
+            cmd (str): command typed in the shell
+        
+        Raises:
+            ValueError: if name parameter is missing
+        
+        Returns:
+            None
+        """
+        
         before , sep , after = cmd.partition("project create ")
         name , desc = _split_pipe(after)
         
@@ -129,6 +190,7 @@ class CLI:
         print(Fore.CYAN  + f"created project {p.name} (id= {p.id})")
     
     def _projectList(self) -> None:
+        """Call to list projects"""
         projectList = self.projects.list()
         if not projectList:
             print(Fore.CYAN  + "No project in workspace")
@@ -137,6 +199,19 @@ class CLI:
             print(Fore.CYAN  + f"{p.id[:8]} | name: {p.name} | description: {p.desc}")
 
     def _projectDelete(self , cmd: str) -> None:
+        """
+        Call to delete project
+
+        Args:
+            cmd (str): command typed in the shell
+        
+        Raises:
+            ValueError: if projectId parameter is missing
+        
+        Returns:
+            None
+        """
+
         before , sep , after = cmd.partition("project delete ")
         projectId = after.strip()
 
@@ -147,6 +222,19 @@ class CLI:
         print(Fore.CYAN  + f"deleted project with id {projectId}")
 
     def _projectEdit(self , cmd: str) -> None:
+        """
+        Call to Edit project
+
+        Args:
+            cmd (str): command typed in the shell
+        
+        Raises:
+            ValueError: if projectId parameter is missing
+        
+        Returns:
+            None
+        """
+
         before , sep , after = cmd.partition("project edit ")
         projectId , name , desc = _split_pipe(after)
         if projectId == "":
@@ -160,6 +248,20 @@ class CLI:
         print(Fore.CYAN  + f"Updated project {p.id}")
 
     def _taskAdd(self , cmd:str ) -> None:
+        """
+        Call to add task
+
+        Args:
+            cmd (str): command typed in the shell
+        
+        Raises:
+            ValueError: if projectId parameter is missing
+            ValueError: if task name parameter is missing
+        
+        Returns:
+            None
+        """
+
         before , sep , after = cmd.partition("task add ")
         projectId , name , desc , status , deadline= _split_pipe(after)
 
@@ -180,6 +282,19 @@ class CLI:
         print(Fore.CYAN  + f"added task {t.name} with id {t.id} to project {projectId}")
 
     def _taskList(self , cmd:str ) -> None:
+        """
+        Call to list tasks
+
+        Args:
+            cmd (str): command typed in the shell
+        
+        Raises:
+            ValueError: if projectId parameter is missing
+        
+        Returns:
+            None
+        """
+
         before , sep , after = cmd.partition("task list ")
         projectId = after.strip()
 
@@ -197,6 +312,19 @@ class CLI:
     
     
     def _taskStatus(self , cmd:str ) -> None:
+        """
+        Call to change status of a task
+
+        Args:
+            cmd (str): command typed in the shell
+        
+        Raises:
+            ValueError: if taskId parameter is missing
+        
+        Returns:
+            None
+        """
+
         before , sep , after = cmd.partition("task status ")
         taskId , newStatus = _split_pipe(after)
 
@@ -208,6 +336,19 @@ class CLI:
         print(Fore.CYAN  + f"task {t.id} status changed to {t.status}")
 
     def _taskEdit(self , cmd:str) -> None:
+        """
+        Call to edit task
+
+        Args:
+            cmd (str): command typed in the shell
+        
+        Raises:
+            ValueError: if taskId parameter is missing
+        
+        Returns:
+            None
+        """
+
         before, sep , after = cmd.partition("task edit ")
         taskId , name , desc , status , deadline= _split_pipe(after)
         
@@ -229,6 +370,19 @@ class CLI:
         print(Fore.CYAN  + f"task {t.id} updated")
     
     def _taskDelete(self , cmd:str ) -> None:
+        """
+        Call to delete task
+
+        Args:
+            cmd (str): command typed in the shell
+        
+        Raises:
+            ValueError: if taskId parameter is missing
+        
+        Returns:
+            None
+        """
+
         before , sep , after = cmd.partition("task delete ")
         taskId = after.strip()
 
