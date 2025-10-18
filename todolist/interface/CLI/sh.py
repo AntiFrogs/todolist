@@ -161,9 +161,12 @@ class CLI:
         if status == "":
             status = "todo"
         
-        deadline = _parseDeadline(deadline)
+        deadlineItem = _parseDeadline(deadline)
         
-        t = self.tasks.addTask(projectId , name , desc , status , deadline)
+        if not deadlineItem:
+            print(f"{deadline} is not a valid format of date here. deadline defaulted to None. please use yyyy-mm-dd format")
+
+        t = self.tasks.addTask(projectId , name , desc , status , deadlineItem)
         print(f"added task {t.name} with id {t.id} to project {projectId}")
 
     def _taskList(self , cmd:str ) -> None:
