@@ -7,6 +7,7 @@ from todolist.interface.CLI.sh import CLI
 
 
 def main():
+    """The starting point of the program"""
     settings =  Setting().initializeSettings()
     project_repo = ProjectsRepo()
     task_repo = TasksRepo()
@@ -16,5 +17,6 @@ def main():
     cli = CLI(project_service , task_service)
     cli.run()
 
+# Only running when called and not when imported
 if __name__ == "__main__":
     main()
