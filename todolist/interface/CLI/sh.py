@@ -2,6 +2,13 @@ from todolist.core.services.project_service import ProjectService
 from todolist.core.services.task_service import TaskService
 import os 
 from datetime import datetime
+from prompt_toolkit import PromptSession
+from prompt_toolkit.history import FileHistory
+from colorama import init , Style , Fore
+init(autoreset=True)
+
+HISTORY_PATH = os.path.expanduser("~/.todolist_cli_history")
+
 
 HELP = """
 Commands:
@@ -28,7 +35,9 @@ def _split_pipe(s: str) -> list[str]:
 
     return parameters
 
-def _parseDeadline(s: str) -> datetime | None:
+def _parseDeadline(s: str) -> datetime | None | str:
+    if s == "":
+        return s
     try : 
         return datetime.strptime    (s , "%Y-%m-%d")
     except ValueError:
@@ -41,26 +50,27 @@ class CLI:
     def __init__(self, project_service: ProjectService, task_service: TaskService) -> None:
         self.projects = project_service
         self.tasks = task_service
-    
+        self.session = PromptSession(history=FileHistory(HISTORY_PATH))
 
     def run(self) -> None:
-        print("Cli todolist app. type help for command list. exit to quit.")
+        print( Fore.GREEN + "Cli todolist app. type help for command list. exit to quit.")
         while True:
             try:
-                cmd = input("$ ").strip()
+                # cmd = input("$ ").strip()
+                cmd = self.session.prompt("> ").strip()
             except (EOFError , KeyboardInterrupt):
-                print("\nBye :)\n Have a good time ! ")
+                print(Fore.GREEN + "\nBye :)\n Have a good time ! ")
                 return
             
             if not cmd:
                 continue
 
             if cmd.lower() == "exit":
-                print("Bye :)\n Have a good time ! ")
+                print(Fore.GREEN + "Bye :)\n Have a good time ! ")
                 return
             
             if cmd.lower() == "help":
-                print(HELP)
+                print(Fore.YELLOW  + HELP)
                 continue
             
             if cmd.lower() == "clear":
@@ -71,11 +81,11 @@ class CLI:
                 self._dispatch(cmd)
             
             except ValueError as v:
-                print(f"Error: {v}")
+                print(Fore.RED + f"Error: {v}")
             except TypeError as t:
-                print(f"Error: {t}")
+                print(Fore.RED + f"Error: {t}")
             except Exception as e:
-                print(f"Error: {e}")
+                print(Fore.RED + f"Error: {e}")
     
     def _dispatch(self , cmd: str) -> None:
         if cmd.startswith("project create "):
@@ -106,7 +116,7 @@ class CLI:
             self._taskDelete(cmd)
 
         else:
-            print("Command is not valid")
+            print(Fore.RED + f"\"{cmd}\" is not recognized as a command")
     
     def _projectCreate(self , cmd: str) -> None:
         before , sep , after = cmd.partition("project create ")
@@ -116,15 +126,15 @@ class CLI:
             raise ValueError("Project must have a name")
 
         p = self.projects.createProject(name , desc)
-        print(f"created project {p.name} (id= {p.id})")
+        print(Fore.CYAN  + f"created project {p.name} (id= {p.id})")
     
     def _projectList(self) -> None:
         projectList = self.projects.list()
         if not projectList:
-            print("No project in workspace")
+            print(Fore.CYAN  + "No project in workspace")
             return
         for p in projectList:
-            print(f"{p.id[:8]} | name: {p.name} | description: {p.desc}")
+            print(Fore.CYAN  + f"{p.id[:8]} | name: {p.name} | description: {p.desc}")
 
     def _projectDelete(self , cmd: str) -> None:
         before , sep , after = cmd.partition("project delete ")
@@ -134,7 +144,7 @@ class CLI:
             raise ValueError("project id argument is missing")
 
         self.projects.deleteProject(projectId)
-        print(f"deleted project with id {projectId}")
+        print(Fore.CYAN  + f"deleted project with id {projectId}")
 
     def _projectEdit(self , cmd: str) -> None:
         before , sep , after = cmd.partition("project edit ")
@@ -147,7 +157,7 @@ class CLI:
             desc = None
 
         p = self.projects.editProject(projectId , name , desc)
-        print(f"Updated project {p.id}")
+        print(Fore.CYAN  + f"Updated project {p.id}")
 
     def _taskAdd(self , cmd:str ) -> None:
         before , sep , after = cmd.partition("task add ")
@@ -163,11 +173,11 @@ class CLI:
         
         deadlineItem = _parseDeadline(deadline)
         
-        if not deadlineItem:
+        if deadlineItem is None:
             print(f"{deadline} is not a valid format of date here. deadline defaulted to None. please use yyyy-mm-dd format")
 
         t = self.tasks.addTask(projectId , name , desc , status , deadlineItem)
-        print(f"added task {t.name} with id {t.id} to project {projectId}")
+        print(Fore.CYAN  + f"added task {t.name} with id {t.id} to project {projectId}")
 
     def _taskList(self , cmd:str ) -> None:
         before , sep , after = cmd.partition("task list ")
@@ -183,7 +193,7 @@ class CLI:
             return
         
         for t in tasksList:
-            print(f"{t.id} | name: {t.name} | status: {t.status} {f"| deadline: {t.deadline} " if t.deadline else ""} {f"| description: {t.desc}" if t.desc else ""}")
+            print(Fore.CYAN  + f"{t.id} | name: {t.name} | status: {t.status} {f"| deadline: {t.deadline} " if t.deadline else ""} {f"| description: {t.desc}" if t.desc else ""}")
     
     
     def _taskStatus(self , cmd:str ) -> None:
@@ -195,7 +205,7 @@ class CLI:
         
 
         t = self.tasks.changeTaskStatus(taskId , newStatus)
-        print(f"task {t.id} status changed to {t.status}")
+        print(Fore.CYAN  + f"task {t.id} status changed to {t.status}")
 
     def _taskEdit(self , cmd:str) -> None:
         before, sep , after = cmd.partition("task edit ")
@@ -211,10 +221,12 @@ class CLI:
         if status == "":
             status = None
         
-        deadline = _parseDeadline(deadline)
+        deadlineItem = _parseDeadline(deadline)
+        if deadlineItem is None:
+            print(f"{deadline} is not a valid format of date here. deadline defaulted to None. please use yyyy-mm-dd format")
         
-        t = self.tasks.editTask(taskId , name , desc , status , deadline) 
-        print(f"task {t.id} updated")
+        t = self.tasks.editTask(taskId , name , desc , status , deadlineItem) 
+        print(Fore.CYAN  + f"task {t.id} updated")
     
     def _taskDelete(self , cmd:str ) -> None:
         before , sep , after = cmd.partition("task delete ")
@@ -225,4 +237,4 @@ class CLI:
 
         result = self.tasks.deleteTask(taskId)
         if(result):
-            print(f"deleted task with id {taskId}")
+            print(Fore.CYAN  + f"deleted task with id {taskId}")
