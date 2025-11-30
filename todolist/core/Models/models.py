@@ -1,7 +1,16 @@
-from uuid import uuid4
-from datetime import datetime
+from __future__ import annotations
 
-class Project:
+from uuid import uuid4
+from datetime import datetime , timezone
+
+from sqlalchemy import String, Text, DateTime, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from todolist.db import Base
+
+from typing import Optional , List
+
+class Project(Base):
     """
     A class used to represent a project instance
 
@@ -11,9 +20,18 @@ class Project:
         desc (str): the description of the project  
     
     """
-    id: str 
-    name: str
-    desc: str
+
+    __tablename__ = "projects"
+
+    id: Mapped[str] = mapped_column(String(8) , primary_key=True)
+    name: Mapped[str] = mapped_column(String(100) , unique=True, nullable=False,)
+    desc: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    tasks: Mapped[List[Task]] = relationship(
+        back_populates="project",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
 
     # constructor 
     def __init__(self , name: str , desc: str = ""):
@@ -51,7 +69,7 @@ class Project:
         if newDesc:
             self.desc = newDesc
 
-class Task:
+class Task(Base):
     """
     A class used to represent a task instance
 
@@ -63,15 +81,33 @@ class Task:
         deadline (datetime | None): The deadline of the task. if not specified , defaults to None    
     
     """
-    id: str
-    for_project: str
-    name: str
-    desc: str
-    status: str = "todo"
-    deadline: datetime | None = None
+    __tablename__ = "tasks"
+
+
+    id:Mapped[str] = mapped_column(String(8), primary_key=True)
+
+    for_project: Mapped[str] = mapped_column( String(8), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    
+    name: Mapped[str] = mapped_column( String(100), nullable=False )
+    
+    desc: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    
+    status: Mapped[str] = mapped_column(String(16), default="todo", nullable=False )
+    
+    deadline: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True )
+
+    at_closed: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+    project: Mapped["Project"] = relationship(
+        back_populates="tasks",
+        primaryjoin="Task.for_project == Project.id",
+    )
 
     # constructor 
-    def __init__(self , for_project: str , name:str , desc:str = "", status:str = "todo" , deadline: datetime | None = None):
+    def __init__(self , for_project: str , name:str , desc:str = "", status:str = "todo" , deadline: datetime | None = None , at_closed: datetime | None = None):
         """
         initializing a Task instance
 
@@ -85,9 +121,12 @@ class Task:
         self.id = str(uuid4())[:8]
         self.name = name
         self.desc = desc
-        self.status = status
         self.for_project = for_project
         self.deadline = deadline
+        self.at_closed = at_closed
+        self.status = status
+        if status == "done" and at_closed is None:
+            self.at_closed = self.at_closed = datetime.now(timezone.utc)
     
     # Methods to control the representation of the class object
     def __str__(self):
@@ -114,7 +153,10 @@ class Task:
         if newDesc:
             self.desc = newDesc
         if newStatus:
+            oldStatus = self.status
             self.status = newStatus
+            if newStatus == "done" and oldStatus != "done" and self.at_closed is None:
+                self.at_closed = datetime.now(timezone.utc)
         if newDeadline:
             self.deadline = newDeadline
 
@@ -131,5 +173,9 @@ class Task:
         newStatus = newStatus.strip()
         if newStatus not in ["todo" , "doing" , "done"]:
             return
-        
+
+        previously_done = (self.status == "done")
         self.status = newStatus
+
+        if newStatus == "done" and not previously_done and self.at_closed is None:
+            self.at_closed = datetime.now(timezone.utc)

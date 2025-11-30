@@ -24,6 +24,7 @@ Commands:
   task status <task_id> | <todo|doing|done>
   task edit <task_id> | <title> | <description> | <todo|doing|done> | <deadline(yyyy-mm-dd)>
   task delete <task_id>
+  task autoclose-overdue
 """
 
 def _split_pipe(s: str) -> list[str]:
@@ -55,11 +56,11 @@ def _parseDeadline(s: str) -> datetime | None | str:
         datetime | None | str: depending on the input string 
     """
     if s == "":
-        return s
+        return None
     try : 
         return datetime.strptime    (s , "%Y-%m-%d")
     except ValueError:
-        return None
+        raise ValueError("Deadline must be in format yyyy-mm-dd (e.g. 2025-12-31)")
 
 
 
@@ -162,6 +163,9 @@ class CLI:
 
         elif cmd.startswith("task delete "):
             self._taskDelete(cmd)
+        
+        elif cmd.startswith("task autoclose-overdue"):
+            self._taskAutoCloseOverdue()
 
         else:
             print(Fore.RED + f"\"{cmd}\" is not recognized as a command")
@@ -275,9 +279,6 @@ class CLI:
         
         deadlineItem = _parseDeadline(deadline)
         
-        if deadlineItem is None:
-            print(f"{deadline} is not a valid format of date here. deadline defaulted to None. please use yyyy-mm-dd format")
-
         t = self.tasks.addTask(projectId , name , desc , status , deadlineItem)
         print(Fore.CYAN  + f"added task {t.name} with id {t.id} to project {projectId}")
 
@@ -308,7 +309,7 @@ class CLI:
             return
         
         for t in tasksList:
-            print(Fore.CYAN  + f"{t.id} | name: {t.name} | status: {t.status} {f"| deadline: {t.deadline} " if t.deadline else ""} {f"| description: {t.desc}" if t.desc else ""}")
+            print(Fore.CYAN  + f"{t.id} | name: {t.name} | status: {t.status} {f"| deadline: {t.deadline} " if t.deadline else ""} {f"| closed at: {t.at_closed} " if t.at_closed else ""} {f"| description: {t.desc}" if t.desc else ""}")
     
     
     def _taskStatus(self , cmd:str ) -> None:
@@ -392,3 +393,14 @@ class CLI:
         result = self.tasks.deleteTask(taskId)
         if(result):
             print(Fore.CYAN  + f"deleted task with id {taskId}")
+    
+    
+    def _taskAutoCloseOverdue(self) -> None:
+        """
+        Automatically close all overdue tasks.
+
+        Returns:
+            None
+        """
+        closedTasksCount = self.tasks.autoCloseOverdueTasks()
+        print(Fore.CYAN + f"{closedTasksCount} overdue task{"s" if closedTasksCount > 1 else ""} were auto-closed.")

@@ -3,7 +3,7 @@ from todolist.data.projects_repo import ProjectsRepo
 from todolist.data.tasks_repo import TasksRepo
 from todolist.config.setting import Setting
 from todolist.core.validation.validation import validateTextLength , validateStatus , validateTaskNumber , validateDeadline
-from datetime import datetime
+from datetime import datetime , timezone
 
 class TaskService:
     """
@@ -144,3 +144,18 @@ class TaskService:
             raise ValueError("Project not found")
 
         return self.tasks.list_by_project(projectId)
+    
+    def autoCloseOverdueTasks(self) -> int:
+        """
+        Automatically close all overdue tasks.
+
+        A task is considered overdue if:
+          + it has a deadline
+          + its deadline is before 'now'
+          + its status is not 'done'
+
+        Returns:
+            int: number of tasks that were updated
+        """
+        now = datetime.now(timezone.utc)
+        return self.tasks.close_overdue(now)

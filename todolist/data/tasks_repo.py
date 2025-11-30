@@ -1,4 +1,13 @@
+from typing import Callable
+from datetime import datetime
+
+from sqlalchemy import select, delete, func
+from sqlalchemy.orm import Session
+
+from todolist.db import get_session
 from todolist.core.Models.models import Task
+
+SessionFactory = Callable[[], Session]
 
 class TasksRepo:
     """
@@ -9,12 +18,11 @@ class TasksRepo:
         _project_tasks (dict[str , set[str]]): protected attribure to store task ids of a project for every project with at least one task
     """
 
-    def __init__(self ):
+    def __init__(self , session_factory: SessionFactory = get_session):
         """
         Initializing a Task repo instance
         """
-        self._tasks: dict[str , Task] = {}
-        self._project_tasks: dict[str , set[str]] = {}
+        self._session_factory = session_factory
 
     def add(self , newTask: Task) -> Task:
         """
@@ -26,11 +34,12 @@ class TasksRepo:
         Returns:
             Task: the Task added gets returned 
         """
-        self._tasks[newTask.id] = newTask
-
-        if newTask.for_project not in self._project_tasks.keys():
-            self._project_tasks[newTask.for_project] = set()
-        self._project_tasks[newTask.for_project].add(newTask.id)
+        with self._session_factory() as session:
+            session.add(newTask)
+            session.commit()
+            session.refresh(newTask)
+            return newTask
+        
     
     def get(self , taskId : str) -> Task | None:
         """
@@ -42,7 +51,10 @@ class TasksRepo:
         Returns:
             Task: project with id taskId 
         """
-        return self._tasks[taskId]
+        with self._session_factory() as session:
+            stmt = select(Task).where(Task.id == taskId)
+            result = session.execute(stmt).scalar_one_or_none()
+            return result
     
     def put(self , newTask: Task) -> Task:
         """
@@ -57,10 +69,11 @@ class TasksRepo:
         Returns:
             Task: updated task
         """
-        if newTask.id not in self._tasks:
-            raise ValueError("Key not found")
-        self._tasks[newTask.id] = newTask
-        return newTask
+        with self._session_factory() as session:
+            merged = session.merge(newTask)
+            session.commit()
+            session.refresh(merged)
+            return merged
 
     def delete(self , taskId: str) -> bool:
         """
@@ -75,16 +88,11 @@ class TasksRepo:
         Returns:
             bool: a boolean value indicating the success of the operation
         """
-        result = self._tasks.pop(taskId , None)
-        if not result:
-            raise ValueError("Task not found")
-        
-        if result.for_project in self._project_tasks:
-            self._project_tasks[result.for_project].discard(taskId)
-            if not self._project_tasks[result.for_project]:
-                self._project_tasks.pop(result.for_project , None)
-        
-        return True
+        with self._session_factory() as session:
+            stmt = delete(Task).where(Task.id == taskId)
+            result = session.execute(stmt)
+            session.commit()
+            return result.rowcount > 0
     
     def delete_project(self , projectId: str) -> bool:
         """
@@ -96,11 +104,10 @@ class TasksRepo:
         Returns:
             bool: A boolean indicating the success of the operation 
         """
-        task_ids = self._project_tasks.pop(projectId , set())
-        for task_id in task_ids:
-            self._tasks.pop(task_id , None)
-
-        return True
+        with self._session_factory() as session:
+            stmt = delete(Task).where(Task.for_project == projectId)
+            session.execute(stmt)
+            session.commit()
     
     def list_by_project(self , projectId: str) -> list[Task]:
         """
@@ -112,8 +119,10 @@ class TasksRepo:
         Returns:
             list[Task]: list of all tasks of the the project with id = projectId 
         """
-        task_ids = self._project_tasks.get(projectId , set())
-        return [self._tasks[task_id] for task_id in task_ids]
+        with self._session_factory() as session:
+            stmt = select(Task).where(Task.for_project == projectId)
+            result = session.execute(stmt).scalars().all()
+            return result
 
     def length(self) -> int:
         """
@@ -122,6 +131,30 @@ class TasksRepo:
         Returns:
             int: the number of tasks
         """
-        return len(self._tasks)
+        with self._session_factory() as session:
+            stmt = select(func.count(Task.id))
+            result = session.execute(stmt).scalar_one()
+            return int(result or 0)
+        
+    def close_overdue(self , compareTime: datetime) -> int:
+        """
+        Find all tasks whose deadline has passed and are not 'done',
+        mark them as done, set at_closed if missing, and commit.
+
+        Returns:
+            int: number of tasks that where updated
+        """
+        with self._session_factory() as session:
+            stmt = select(Task).where(Task.deadline.is_not(None)).where(Task.deadline < compareTime).where(Task.status != "done")
+            tasks = session.execute(stmt).scalars().all()
+
+            for task in tasks:
+                task.status = "done"
+                if task.at_closed is None:
+                    task.at_closed = compareTime
+
+            session.commit()
+            return len(tasks)
+
 
 
