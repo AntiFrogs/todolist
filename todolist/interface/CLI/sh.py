@@ -24,6 +24,7 @@ Commands:
   task status <task_id> | <todo|doing|done>
   task edit <task_id> | <title> | <description> | <todo|doing|done> | <deadline(yyyy-mm-dd)>
   task delete <task_id>
+  task autoclose-overdue
 """
 
 def _split_pipe(s: str) -> list[str]:
@@ -162,6 +163,9 @@ class CLI:
 
         elif cmd.startswith("task delete "):
             self._taskDelete(cmd)
+        
+        elif cmd.startswith("task autoclose-overdue"):
+            self._taskAutoCloseOverdue()
 
         else:
             print(Fore.RED + f"\"{cmd}\" is not recognized as a command")
@@ -389,3 +393,14 @@ class CLI:
         result = self.tasks.deleteTask(taskId)
         if(result):
             print(Fore.CYAN  + f"deleted task with id {taskId}")
+    
+    
+    def _taskAutoCloseOverdue(self) -> None:
+        """
+        Automatically close all overdue tasks.
+
+        Returns:
+            None
+        """
+        closedTasksCount = self.tasks.autoCloseOverdueTasks()
+        print(Fore.CYAN + f"{closedTasksCount} overdue task{"s" if closedTasksCount > 1 else ""} were auto-closed.")

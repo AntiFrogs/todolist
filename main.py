@@ -4,6 +4,7 @@ from todolist.core.services.task_service import TaskService
 from todolist.data.projects_repo import ProjectsRepo
 from todolist.data.tasks_repo import TasksRepo
 from todolist.interface.CLI.sh import CLI
+from todolist.core.commands.schedule import scheduleCommands
 
 
 def main():
@@ -14,6 +15,8 @@ def main():
     project_service = ProjectService(project_repo, task_repo, settings)
     task_service = TaskService(project_repo , task_repo , settings )
 
+    scheduleCommands(task_service , project_service)
+    
     cli = CLI(project_service , task_service)
     cli.run()
 

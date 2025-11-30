@@ -1,4 +1,5 @@
 from typing import Callable
+from datetime import datetime
 
 from sqlalchemy import select, delete, func
 from sqlalchemy.orm import Session
@@ -134,5 +135,26 @@ class TasksRepo:
             stmt = select(func.count(Task.id))
             result = session.execute(stmt).scalar_one()
             return int(result or 0)
+        
+    def close_overdue(self , compareTime: datetime) -> int:
+        """
+        Find all tasks whose deadline has passed and are not 'done',
+        mark them as done, set at_closed if missing, and commit.
+
+        Returns:
+            int: number of tasks that where updated
+        """
+        with self._session_factory() as session:
+            stmt = select(Task).where(Task.deadline.is_not(None)).where(Task.deadline < compareTime).where(Task.status != "done")
+            tasks = session.execute(stmt).scalars().all()
+
+            for task in tasks:
+                task.status = "done"
+                if task.at_closed is None:
+                    task.at_closed = compareTime
+
+            session.commit()
+            return len(tasks)
+
 
 
