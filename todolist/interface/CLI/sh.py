@@ -305,7 +305,7 @@ class CLI:
             return
         
         for t in tasksList:
-            print(Fore.CYAN  + f"{t.id} | name: {t.name} | status: {t.status} {f"| deadline: {t.deadline} " if t.deadline else ""} {f"| description: {t.desc}" if t.desc else ""}")
+            print(Fore.CYAN  + f"{t.id} | name: {t.name} | status: {t.status} {f"| deadline: {t.deadline} " if t.deadline else ""} {f"| closed at: {t.at_closed} " if t.at_closed else ""} {f"| description: {t.desc}" if t.desc else ""}")
     
     
     def _taskStatus(self , cmd:str ) -> None:

@@ -19,7 +19,7 @@ class ProjectsRepo:
         _project (dict[str , Projects]): protected attribure to store the projects in a dictionary with ids as the keys
     """
     
-    def __init__(self , session_factory: SessionFactory = get_session ):
+    def __init__(self , session_factory: SessionFactory = get_session):
         """
         Initializing a Project repo instance
         """

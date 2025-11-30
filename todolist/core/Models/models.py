@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from uuid import uuid4
-from datetime import datetime
+from datetime import datetime , timezone
 
 from sqlalchemy import String, Text, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -96,13 +96,18 @@ class Task(Base):
     
     deadline: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True )
 
+    at_closed: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
     project: Mapped["Project"] = relationship(
         back_populates="tasks",
         primaryjoin="Task.for_project == Project.id",
     )
 
     # constructor 
-    def __init__(self , for_project: str , name:str , desc:str = "", status:str = "todo" , deadline: datetime | None = None):
+    def __init__(self , for_project: str , name:str , desc:str = "", status:str = "todo" , deadline: datetime | None = None , at_closed: datetime | None = None):
         """
         initializing a Task instance
 
@@ -116,9 +121,12 @@ class Task(Base):
         self.id = str(uuid4())[:8]
         self.name = name
         self.desc = desc
-        self.status = status
         self.for_project = for_project
         self.deadline = deadline
+        self.at_closed = at_closed
+        self.status = status
+        if status == "done" and at_closed is None:
+            self.at_closed = self.at_closed = datetime.now(timezone.utc)
     
     # Methods to control the representation of the class object
     def __str__(self):
@@ -145,7 +153,10 @@ class Task(Base):
         if newDesc:
             self.desc = newDesc
         if newStatus:
+            oldStatus = self.status
             self.status = newStatus
+            if newStatus == "done" and oldStatus != "done" and self.at_closed is None:
+                self.at_closed = datetime.now(timezone.utc)
         if newDeadline:
             self.deadline = newDeadline
 
@@ -162,5 +173,9 @@ class Task(Base):
         newStatus = newStatus.strip()
         if newStatus not in ["todo" , "doing" , "done"]:
             return
-        
+
+        previously_done = (self.status == "done")
         self.status = newStatus
+
+        if newStatus == "done" and not previously_done and self.at_closed is None:
+            self.at_closed = datetime.now(timezone.utc)
