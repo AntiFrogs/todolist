@@ -55,11 +55,11 @@ def _parseDeadline(s: str) -> datetime | None | str:
         datetime | None | str: depending on the input string 
     """
     if s == "":
-        return s
+        return None
     try : 
         return datetime.strptime    (s , "%Y-%m-%d")
     except ValueError:
-        return None
+        raise ValueError("Deadline must be in format yyyy-mm-dd (e.g. 2025-12-31)")
 
 
 
@@ -275,9 +275,6 @@ class CLI:
         
         deadlineItem = _parseDeadline(deadline)
         
-        if deadlineItem is None:
-            print(f"{deadline} is not a valid format of date here. deadline defaulted to None. please use yyyy-mm-dd format")
-
         t = self.tasks.addTask(projectId , name , desc , status , deadlineItem)
         print(Fore.CYAN  + f"added task {t.name} with id {t.id} to project {projectId}")
 

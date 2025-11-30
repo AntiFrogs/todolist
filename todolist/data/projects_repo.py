@@ -1,4 +1,15 @@
+from typing import Callable
+
+from sqlalchemy import select, delete, func
+from sqlalchemy.orm import Session
+
+from todolist.db import get_session
+
 from todolist.core.Models.models import Project
+
+
+SessionFactory = Callable[[], Session]
+
 
 class ProjectsRepo:
     """
@@ -8,11 +19,11 @@ class ProjectsRepo:
         _project (dict[str , Projects]): protected attribure to store the projects in a dictionary with ids as the keys
     """
     
-    def __init__(self):
+    def __init__(self , session_factory: SessionFactory = get_session ):
         """
         Initializing a Project repo instance
         """
-        self._projects: dict[str , Project] = {}
+        self._session_factory = session_factory
     
     def add(self , newProject: Project) -> Project:
         """
@@ -24,8 +35,12 @@ class ProjectsRepo:
         Returns:
             Project: the Project added gets returned 
         """
-        self._projects[newProject.id] = newProject
-        return newProject
+
+        with self._session_factory() as session:
+            session.add(newProject)
+            session.commit()
+            session.refresh(newProject)
+            return newProject
 
     def get(self , projectId: str ) -> Project | None:
         """
@@ -37,8 +52,11 @@ class ProjectsRepo:
         Returns:
             Project: project with id projectId 
         """
-        return self._projects.get(projectId)
-    
+        with self._session_factory() as session:
+            query = select(Project).where(Project.id == projectId)
+            result = session.execute(query).scalar_one_or_none()
+            return result
+
     def delete(self , projectId) -> bool:
         """
         Deleting a Project from the Project Repo
@@ -49,7 +67,11 @@ class ProjectsRepo:
         Returns:
             bool: a boolean value indicating the success of the operation
         """
-        return self._projects.pop(projectId , None) != None
+        with self._session_factory() as session:
+            query = delete(Project).where(Project.id == projectId)
+            result = session.execute(query)
+            session.commit()
+            return result.rowcount > 0
     
     def put(self , newProject: Project ) -> Project:
         """
@@ -64,10 +86,11 @@ class ProjectsRepo:
         Returns:
             Project: updated project
         """
-        if newProject.id not in self._projects.keys():
-            raise ValueError("Key not found")
-        self._projects[newProject.id] = newProject
-        return newProject
+        with self._session_factory() as session:
+            merged = session.merge(newProject)
+            session.commit()
+            session.refresh(merged)
+            return merged
     
     def list(self) -> list[Project]:
         """
@@ -76,7 +99,10 @@ class ProjectsRepo:
         Returns:
             list[Projects]: list of all projects 
         """
-        return list(self._projects.values())
+        with self._session_factory() as session:
+            stmt = select(Project)
+            result = session.execute(stmt).scalars().all()
+            return result
     
     def length(self) -> int:
         """
@@ -85,4 +111,7 @@ class ProjectsRepo:
         Returns:
             int: the number of projects
         """
-        return len(self._projects)
+        with self._session_factory() as session:
+            stmt = select(func.count(Project.id))
+            result = session.execute(stmt).scalar_one()
+            return int(result or 0)
