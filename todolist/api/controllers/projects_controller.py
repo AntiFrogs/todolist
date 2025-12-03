@@ -29,6 +29,13 @@ def get_project_service() -> ProjectService:
     "",
     response_model=list[ProjectResponse],
     summary="List all projects",
+    description=(
+        "Return the complete list of projects stored in the system. "
+        "Projects are returned in the order provided by the repository."
+    ),
+    responses={
+        200: {"description": "List of projects returned successfully."},
+    },
 )
 async def list_projects(service: ProjectService = Depends(get_project_service)):
     """
@@ -43,6 +50,14 @@ async def list_projects(service: ProjectService = Depends(get_project_service)):
     response_model=ProjectResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create a new project",
+    description=(
+        "Create a new project with a name and optional description. "
+        "The name must satisfy length constraints and must be unique among projects."
+    ),
+    responses={
+        201: {"description": "Project created successfully."},
+        400: {"description": "Validation error (name length, duplicate name, etc.)."},
+    },
 )
 async def create_project(
     request: ProjectCreateRequest,
@@ -59,6 +74,11 @@ async def create_project(
     "/{project_id}",
     response_model=ProjectResponse,
     summary="Get a project by id",
+    description="Retrieve a single project using its ID.",
+    responses={
+        200: {"description": "Project found and returned."},
+        404: {"description": "Project with the given ID was not found."},
+    },
 )
 async def get_project(
     project_id: str,
@@ -79,6 +99,15 @@ async def get_project(
     "/{project_id}",
     response_model=ProjectResponse,
     summary="Update an existing project",
+    description=(
+        "Update one or more fields of an existing project. "
+        "Fields that are not provided in the request body remain unchanged."
+    ),
+    responses={
+        200: {"description": "Project updated successfully."},
+        400: {"description": "Validation error (invalid name, description, etc.)."},
+        404: {"description": "Project with the given ID was not found."},
+    },
 )
 async def update_project(
     project_id: str,
@@ -103,6 +132,11 @@ async def update_project(
     "/{project_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete a project",
+    description="Delete an existing project by its ID.",
+    responses={
+        204: {"description": "Project deleted successfully (no content)."},
+        404: {"description": "Project with the given ID was not found."},
+    },
 )
 async def delete_project(
     project_id: str,

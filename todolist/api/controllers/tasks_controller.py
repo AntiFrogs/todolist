@@ -28,6 +28,11 @@ def get_task_service() -> TaskService:
     "/projects/{project_id}/tasks",
     response_model=list[TaskResponse],
     summary="List tasks of a project",
+    description="Return all tasks that belong to the specified project.",
+    responses={
+        200: {"description": "List of tasks for the project."},
+        404: {"description": "Project not found."},
+    },
 )
 async def list_project_tasks(project_id: str, service: TaskService = Depends(get_task_service)):
     """
@@ -40,7 +45,21 @@ async def list_project_tasks(project_id: str, service: TaskService = Depends(get
     return tasks
 
 
-@router.post( "/projects/{project_id}/tasks", response_model=TaskResponse, status_code=status.HTTP_201_CREATED, summary="Create a task in a project")
+@router.post( 
+    "/projects/{project_id}/tasks", 
+    response_model=TaskResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a task in a project",
+    description=(
+        "Create a new task inside the specified project. "
+        "The task uses the project's constraints and validation rules."
+    ),
+    responses={
+        201: {"description": "Task created successfully."},
+        400: {"description": "Validation error (name, status, deadline, etc.)."},
+        404: {"description": "Project not found."},
+    },
+)
 async def create_task_for_project(
     project_id: str,
     request: TaskCreateRequest,
@@ -61,7 +80,17 @@ async def create_task_for_project(
 
 
 
-@router.get( "/tasks/{task_id}", response_model=TaskResponse, summary="Get a task by id")
+@router.get( 
+    "/tasks/{task_id}", 
+    response_model=TaskResponse, 
+    summary="Get a task by id",
+    description="Retrieve a task using its ID.",
+    responses={
+        200: {"description": "Task found and returned."},
+        404: {"description": "Task not found."},
+    },
+)
+
 async def get_task( task_id: str, service: TaskService = Depends(get_task_service)):
     """
     Get a single task by its id.
@@ -77,19 +106,24 @@ async def get_task( task_id: str, service: TaskService = Depends(get_task_servic
 
 
 
-@router.patch( "/tasks/{task_id}", response_model=TaskResponse, summary="Update an existing task")
+@router.patch( 
+    "/tasks/{task_id}", 
+    response_model=TaskResponse, 
+    summary="Update an existing task" ,
+    description=(
+        "Update one or more fields of an existing task. "
+        "Fields that are not provided remain unchanged."
+    ),
+    responses={
+        200: {"description": "Task updated successfully."},
+        400: {"description": "Validation error on provided fields."},
+        404: {"description": "Task not found."},
+    },
+)
 async def update_task( task_id: str, request: TaskUpdateRequest, service: TaskService = Depends(get_task_service)):
     """
     Partially update a task.
     """
-
-    # data = request.model_dump(exclude_unset=True)
-
-    # new_name = data.get("name")
-    # new_desc = data.get("desc")
-    # new_status = data.get("status")
-    # new_deadline = data.get("deadline")
-
     try:
         task = service.editTask(
             taskId=task_id,
@@ -113,7 +147,16 @@ async def update_task( task_id: str, request: TaskUpdateRequest, service: TaskSe
     return task
 
 
-@router.delete( "/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete a task")
+@router.delete( 
+    "/tasks/{task_id}", 
+    status_code=status.HTTP_204_NO_CONTENT, 
+    summary="Delete a task",
+    description="Delete an existing task by its ID.",
+    responses={
+        204: {"description": "Task successfully deleted."},
+        404: {"description": "Task not found."},
+    },
+)
 async def delete_task(task_id: str, service: TaskService = Depends(get_task_service) ):
     """
     Delete a task by id.
