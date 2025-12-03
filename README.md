@@ -59,14 +59,14 @@ The lack of front-end is appearant. Dockerizing the project is also a top priori
     docker start todo-db
     ```
 
-4. run the application (API endpoints)
+5. run the application (API endpoints)
     ```bash
     poetry run uvicorn api_main:app --reload
     ```
     after this you will have the server running. go to `http://127.0.0.1:8000/docs` to have the documentation for the API endpoints.
 
 
-5. run the application (CLI - DEPRECATED)
+6. run the application (CLI - DEPRECATED)
     ```bash
     poetry run python main.py
     ```
@@ -78,7 +78,7 @@ The lack of front-end is appearant. Dockerizing the project is also a top priori
     <br>
     and `clear` to clear the shell.
 
-6. here are some example commands:
+7. here are some example commands:
 
     project managment:
 
