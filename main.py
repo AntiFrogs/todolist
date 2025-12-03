@@ -3,7 +3,7 @@ from todolist.core.services.project_service import ProjectService
 from todolist.core.services.task_service import TaskService
 from todolist.data.projects_repo import ProjectsRepo
 from todolist.data.tasks_repo import TasksRepo
-from todolist.interface.CLI.sh import CLI
+from todolist.interface.CLI.cli import CLI
 from todolist.core.commands.schedule import scheduleCommands
 
 

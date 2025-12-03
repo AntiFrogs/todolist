@@ -13,6 +13,7 @@ def scheduleCommands(taskService: TaskService , projectService: ProjectService) 
     Returns:
         None
     """
+
     schedule.every().day.at("00:00:01").do(taskService.autoCloseOverdueTasks)
 
     #  Running all when the program runs
