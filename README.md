@@ -1,16 +1,20 @@
 # Todolist
 
-Simple todolist with userfriendly command line interface.   
+Simple todolist with API endpoints and a deprecated command line interface.   
+
+## Deprecation Notice (CLI)
+
+The command-line interface (CLI) used in earlier phases is now **deprecated**.
 
 ## How It's Made:
-**Tech Used:** python , python-dotenv , prompt-toolkit , colorama , poetry 
+**Tech Used:** python , python-dotenv , prompt-toolkit , colorama , poetry , PostgreSQL , docker , fastAPI , uvicorn
 <br />
 <br />
-This is a simple object-orianted , layered and user-friendly todolist application implemented with pyhton. Currently has a cli , will add more interfaces in the future. the app has in-memory storage and after exiting the data is lost.   
+This is a simple object-orianted , layered and user-friendly todolist application implemented with pyhton. The services are provided via fastAPI endpoints. The data are also stored in PostgreSQL database containerized with docker.    
 
 ## What's left:
 
-Firstly the stroage method needs to become persistent. For that matter db implementation will be required. other than that , though careful methods has been considered to male the command line interface user-friendy , but still the lack of front-end is appearant. API end points need to be implemented. Dockerizing the project is also a top priority to have consistent runs on every device.  
+The lack of front-end is appearant. Dockerizing the project is also a top priority to have consistent runs on every device.  
 
 
 ## How to run:
@@ -19,6 +23,8 @@ Firstly the stroage method needs to become persistent. For that matter db implem
 
 - pyhton 3. 10 and above 
 - poetry to install the dependencies and run the app
+- docker to run the database
+
 
 ### set up
 
@@ -34,7 +40,33 @@ Firstly the stroage method needs to become persistent. For that matter db implem
     cp .env.example .env
     ```
 
-4. run the application 
+4. run the database in a docker container
+    ```bash
+    docker run --name todo-db \
+    -e POSTGRES_USER=todo_user \
+    -e POSTGRES_PASSWORD=todo_password \
+    -e POSTGRES_DB=todo_db \
+    -p 5432:5432 \
+    -d postgres:16
+    ```
+    after this run
+    ```bash
+    docker ps
+    ```
+    to make sure it's running.<br><br>
+    And if you already have the image , run 
+    ```bash
+    docker start todo-db
+    ```
+
+5. run the application (API endpoints)
+    ```bash
+    poetry run uvicorn api_main:app --reload
+    ```
+    after this you will have the server running. go to `http://127.0.0.1:8000/docs` to have the documentation for the API endpoints.
+
+
+6. run the application (CLI - DEPRECATED)
     ```bash
     poetry run python main.py
     ```
@@ -46,7 +78,7 @@ Firstly the stroage method needs to become persistent. For that matter db implem
     <br>
     and `clear` to clear the shell.
 
-5. here are some example commands:
+7. here are some example commands:
 
     project managment:
 

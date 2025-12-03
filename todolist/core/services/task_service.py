@@ -159,3 +159,21 @@ class TaskService:
         """
         now = datetime.now(timezone.utc)
         return self.tasks.close_overdue(now)
+    
+    def getTask(self, taskId: str) -> Task:
+        """
+        Get a single task by its id.
+
+        Args:
+            taskId (str): id of the task we want
+
+        Raises:
+            ValueError: if task is not found
+
+        Returns:
+            Task: the found task
+        """
+        task = self.tasks.get(taskId)
+        if not task:
+            raise ValueError("Task not found")
+        return task

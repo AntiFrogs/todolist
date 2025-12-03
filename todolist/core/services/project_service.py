@@ -110,3 +110,22 @@ class ProjectService:
         """
         return self.projects.list()
     
+    def getProject(self, projectId: str) -> Project:
+        """
+        Get a single project by its id.
+
+        Args:
+            projectId (str): id of the project we want
+
+        Raises:
+            ValueError: if project is not found
+
+        Returns:
+            Project: the found project
+        """
+        project = self.projects.get(projectId)
+        if not project:
+            raise ValueError("Project not found")
+        return project
+
+    
