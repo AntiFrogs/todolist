@@ -2,6 +2,10 @@
 
 Simple todolist with userfriendly command line interface.   
 
+## Deprecation Notice (CLI)
+
+The command-line interface (CLI) used in earlier phases is now **deprecated**.
+
 ## How It's Made:
 **Tech Used:** python , python-dotenv , prompt-toolkit , colorama , poetry 
 <br />

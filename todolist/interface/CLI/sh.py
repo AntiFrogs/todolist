@@ -72,6 +72,10 @@ class CLI:
         projects (ProjectService) : service to provide to projects
         tasks (TaskService) : service to provide to tasks
         session (PromptSession): interactive command line 
+
+    Deprecation notice:
+        This CLI is kept only for backward compatibility and will be removed in future.
+        No new features will be added here. All new functionality must be implemented in the Web API layer. 
     """
 
     def __init__(self, project_service: ProjectService, task_service: TaskService) -> None:
@@ -90,7 +94,9 @@ class CLI:
         self.session = PromptSession(history=FileHistory(HISTORY_PATH))
 
     def run(self) -> None:
-        """Running the command line interface"""
+        """Running the command line interface (DEPRECATED) """
+
+        print(Fore.RED + "WARNING: The CLI interface is deprecated and will be removed in a future version.\n  Please use the Web API instead.")
 
         print( Fore.GREEN + "Cli todolist app. type help for command list. exit to quit.")
         while True:
